@@ -26,7 +26,6 @@ pub enum StakingAction {
 pub enum StakingEvent {
     Staked(u128),
     Withdrawed(u128),
-    StakeOf(Staker),
     ConfigurationUpdate
 }
 
@@ -41,7 +40,7 @@ pub enum StakingState {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum StakingReply {
     Owner(ActorId),
-    StakeOf(Staker),
+    Staked(u128),
     TotalStaked(u128),
     TokenAddress(ActorId)
 }

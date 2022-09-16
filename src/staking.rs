@@ -64,7 +64,12 @@ impl Staking {
             amount)
             .await;
 
-        staker.balance = staker.balance.saturating_sub(amount);
+        self.stakers
+            .entry(msg::source())
+            .and_modify(|staker| {
+                staker.balance = staker.balance.saturating_sub(amount);
+            });
+
         self.total_staked = self.total_staked.saturating_sub(amount);
 
         msg::send_for_reply(
@@ -81,7 +86,7 @@ impl Staking {
                 .get(&staker_id)
                 .unwrap_or(&Staker { balance: 0 });
 
-        msg::reply(StakingEvent::StakeOf(*staker), 0);
+        msg::reply(StakingEvent::Staked(staker.balance), 0);
     }
 
     pub fn update_configuration(&mut self, configuration: StakingInitialConfiguration) {
@@ -99,9 +104,9 @@ async fn transfer_tokens(
     to: &ActorId,
     amount: u128,
 ) {
-    let reply = msg::send_for_reply(
+    msg::send_for_reply(
         *token_address,
-        FTAction::Transfer {
+        FTAction::TransferFrom {
             from: *from,
             to: *to,
             amount,
@@ -109,10 +114,6 @@ async fn transfer_tokens(
         0,
     )
     .expect("Polkapad Staking: error in sending message")
-    .await;
-
-    match reply {
-        Ok(_) => {},
-        Err(msg) => panic!("{:?}", msg)
-    }
+    .await
+    .expect("Polkapd Staking: error in token contract");
 }

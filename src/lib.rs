@@ -72,7 +72,7 @@ pub unsafe extern "C" fn meta_state() -> *mut [i32; 2] {
                 .get(&staker_id)
                 .unwrap_or(&Staker { balance: 0 });
 
-            StakingReply::StakeOf(*staker)
+            StakingReply::Staked(staker.balance)
         },
         StakingState::TotalStaked => StakingReply::TotalStaked(staking.total_staked),
         StakingState::TokenAddress => StakingReply::TokenAddress(staking.token_address)

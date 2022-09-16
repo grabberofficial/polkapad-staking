@@ -12,7 +12,7 @@ const DEPLOYER: u64 = 10;
 const ALICE: u64 = 11;
 
 #[test]
-fn stake_50_plpd_should_accepted() {
+fn stake_50_plpd_should_staked() {
     let system = System::new();
     init_staking_token(&system);
     init_staking(&system);
@@ -90,6 +90,9 @@ fn stake_50_then_withraw_25_should_withdrawed_25() {
     let result = token.send(ALICE, FTAction::BalanceOf(ALICE.into()));
     assert!(result.contains(&(ALICE, FTEvent::Balance(expected_balance).encode())));
 
+    let result = staking.send(ALICE, StakingAction::StakeOf(ALICE.into()));
+    assert!(result.contains(&(ALICE, StakingEvent::Staked(expected_staked - to_withdraw).encode())));
+
     let result = token.send(ALICE, FTAction::BalanceOf(STAKING_ADDRESS.into()));
     assert!(result.contains(&(ALICE, FTEvent::Balance(expected_withdraw).encode())));
 }
@@ -144,7 +147,7 @@ fn init_staking_token(system: &System) {
     
     token.send(
         DEPLOYER,
-        FTAction::Transfer {
+        FTAction::TransferFrom {
             from: DEPLOYER.into(),
             to: ALICE.into(),
             amount: 100
