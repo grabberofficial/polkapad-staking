@@ -25,8 +25,8 @@ impl Staking {
 
         self.stakers
             .entry(msg::source())
-            .and_modify(|stake| {
-                stake.balance = stake.balance.saturating_add(amount);
+            .and_modify(|staker| {
+                staker.balance = staker.balance.saturating_add(amount);
             })
             .or_insert(Staker {
                 balance: amount
@@ -51,7 +51,7 @@ impl Staking {
         let staker = self
             .stakers
             .get_mut(&msg::source())
-            .unwrap_or_else(|| panic!("Polkapad Staking: staker {:?} not found", msg::source()));
+            .unwrap_or_else(|| panic!("Polkapad Staking: staker not found"));
 
         if staker.balance < amount {
             panic!("Polkapad Staking: staker balance is '{:?}'. This is less than the withdraw amount", staker.balance);
@@ -64,11 +64,9 @@ impl Staking {
             amount)
             .await;
 
-        self.stakers
-            .entry(msg::source())
-            .and_modify(|staker| {
-                staker.balance = staker.balance.saturating_sub(amount);
-            });
+        *staker = Staker {
+            balance: staker.balance.saturating_sub(amount)
+        };
 
         self.total_staked = self.total_staked.saturating_sub(amount);
 
